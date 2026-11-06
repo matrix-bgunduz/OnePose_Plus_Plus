@@ -17,8 +17,8 @@ use_local_ray: True
 
 ray:
   slurm: False
-  n_workers: 4
-  n_cpus_per_worker: 5
+  n_workers: 2
+  n_cpus_per_worker: 2
   n_gpus_per_worker: 1
   local_mode: False
 

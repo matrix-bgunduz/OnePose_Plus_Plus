@@ -2,20 +2,22 @@ import ray
 import torch
 from tqdm import tqdm
 from src.utils.metric_utils import compute_query_pose_errors
-
+from time import perf_counter
 
 @torch.no_grad()
 def extract_matches(data, match_model, metrics_configs):
     # 1. Run inference
+    start = perf_counter()
     match_model(data)
+    inference_time = perf_counter()-start
 
     # 2. Compute metrics
     compute_query_pose_errors(data, metrics_configs)
-
     R_errs = data["R_errs"]
     t_errs = data["t_errs"]
     inliers = data["inliers"]
     pose_pred = [data["pose_pred"][0]]
+    pose_gt = data["query_pose_gt"][0].cpu().numpy()
 
     result_data = {
         "mkpts3d": data["mkpts_3d_db"].cpu().numpy(),
@@ -28,6 +30,7 @@ def extract_matches(data, match_model, metrics_configs):
         "pose_gt": data["query_pose_gt"][0].cpu().numpy(),
         "intrinsic": data["query_intrinsic"][0].cpu().numpy(),
         "image_path": data["query_image_path"],
+        "inference_time": inference_time
     }
 
     if "ADD" in data:
@@ -54,7 +57,6 @@ def inference_onepose_plus_worker(
         data_c = {
             k: v.cuda() if isinstance(v, torch.Tensor) else v for k, v in data.items()
         }
-
         result = extract_matches(
             data_c, match_model, metrics_configs=cfgs["eval_metrics"]
         )
@@ -67,6 +69,6 @@ def inference_onepose_plus_worker(
     return results
 
 
-@ray.remote(num_cpus=1, num_gpus=0.5, max_calls=1)  # release gpu after finishing
+@ray.remote(max_calls=1)  # release gpu after finishing
 def inference_onepose_plus_worker_ray_wrapper(*args, **kwargs):
     return inference_onepose_plus_worker(*args, **kwargs)

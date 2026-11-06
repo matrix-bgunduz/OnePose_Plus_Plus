@@ -21,7 +21,7 @@ ray:
   local_mode: False
 
 model:
-  pretrained_ckpt: weight/OnePosePlus_model.ckpt
+  pretrained_ckpt: weights/Pretrained_models/OnePosePlus_model.ckpt
 
   OnePosePlus:
     loftr_backbone:
@@ -32,7 +32,7 @@ model:
         initial_dim: 128
         block_dims: [128, 196, 256]
         output_layers: [3, 1]
-      pretrained: "weight/LoFTR_wsize9.ckpt"
+      pretrained: "weights/Pretrained_models/LoFTR_wsize9.ckpt"
       pretrained_fix: False
 
     interpol_type: "bilinear"

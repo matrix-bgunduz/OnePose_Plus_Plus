@@ -16,7 +16,7 @@ cfgs = {
     "data": {"img_resize": None, "df": 8, "shuffle": True}, # None means use original size
     "matcher": {
         "model": {
-            "weight_path": "weight/LoFTR_wsize9.ckpt",
+            "weight_path": "weights/Pretrained_models/LoFTR_wsize9.ckpt",
             "seed": 666,
         },
         "pair_name_split": " ",
@@ -24,9 +24,9 @@ cfgs = {
     "coarse_match_debug": True,
     "ray": {
         "slurm": False,
-        "n_workers": 4, 
+        "n_workers": 2, 
         "n_cpus_per_worker": 1,
-        "n_gpus_per_worker": 0.25,
+        "n_gpus_per_worker": 1,
         "local_mode": False,
     },
 }
@@ -38,6 +38,7 @@ def detector_free_coarse_matching(
     feature_out,
     match_out,
     use_ray=False,
+    ray_cfg=None,
     verbose=False,
 ):
     # Build dataset:
@@ -50,7 +51,7 @@ def detector_free_coarse_matching(
 
     if use_ray:
         # Initial ray:
-        cfg_ray = cfgs["ray"]
+        cfg_ray = ray_cfg if ray_cfg is not None else cfgs["ray"]
         if cfg_ray["slurm"]:
             ray.init(address=os.environ["ip_head"])
         else:
@@ -75,7 +76,10 @@ def detector_free_coarse_matching(
                 len(dataset), math.ceil(len(dataset) / cfg_ray["n_workers"])
             )
             obj_refs = [
-                match_worker_ray_wrapper.remote(
+                match_worker_ray_wrapper.options(
+                    num_cpus=cfg_ray["n_cpus_per_worker"],
+                    num_gpus=cfg_ray["n_gpus_per_worker"],
+                ).remote(
                     dataset,
                     subset_ids,
                     cfgs["matcher"],

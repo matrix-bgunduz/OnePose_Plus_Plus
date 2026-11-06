@@ -5,9 +5,9 @@ channels:
   - defaults
 dependencies:
   - python=3.7
-  - pytorch=1.8.0
-  - torchvision=0.9.1
-  - cudatoolkit=10.1
+  # - pytorch=1.8.0
+  # - torchvision=0.9.1
+  # - cudatoolkit=10.1
   - ipython
   - tqdm
   - matplotlib
@@ -20,5 +20,5 @@ dependencies:
   - conda-forge::ipdb
   - conda-forge::albumentations=0.5.1
   - pip
-  - pip:
-    - -r requirements.txt
+  # - pip:
+  #   - -r requirements.txt

@@ -26,15 +26,15 @@ cfgs = {
     "fine_match_debug": True,
     "fine_matcher": {
         "model": {
-            "weight_path": "weight/LoFTR_wsize9.ckpt",
+            "weight_path": "weights/Pretrained_models/LoFTR_wsize9.ckpt",
             "seed": 666,
         },
         "extract_feature_method": "fine_match_backbone",
         "ray": {
             "slurm": False,
-            "n_workers": 4,
+            "n_workers": 2,
             "n_cpus_per_worker": 1,
-            "n_gpus_per_worker": 0.25,
+            "n_gpus_per_worker": 1,
             "local_mode": False,
         },
     },
@@ -69,6 +69,7 @@ def post_optimization(
     vis3d_pth=None,
     verbose=True,
     args=None,
+    ray_cfg=None,
 ):
     # Overwrite some configs
     cfgs["coarse_recon_data"]["verbose"] = verbose
@@ -82,6 +83,8 @@ def post_optimization(
 
         if 'solver_type' in args['optimizer']:
             cfgs['optimizer']['solver_type'] = args['optimizer']['solver_type']
+    if ray_cfg is not None:
+        cfgs["fine_matcher"]["ray"] = ray_cfg
 
     # Construct scene data
     coarse_recon_dataset = CoarseReconDataset(

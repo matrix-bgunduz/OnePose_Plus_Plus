@@ -43,6 +43,7 @@ def inference_onepose_plus(
     """
     Inference for one object
     """
+    # print(sfm_results_dir)
     # Build dataset:
     dataset = OnePosePlusInferenceDataset(
         sfm_results_dir,
@@ -83,7 +84,10 @@ def inference_onepose_plus(
         all_subset_ids = all_subset_ids
 
         obj_refs = [
-            inference_onepose_plus_worker_ray_wrapper.remote(
+            inference_onepose_plus_worker_ray_wrapper.options(
+                num_cpus=cfg_ray["n_cpus_per_worker"],
+                num_gpus=cfg_ray["n_gpus_per_worker"],
+            ).remote(
                 dataset,
                 match_model,
                 subset_ids,
@@ -125,6 +129,16 @@ def inference_onepose_plus(
     pose_errs = {'R_errs': R_errs, "t_errs": t_errs}
     if add_metric is not None:
         pose_errs.update({'ADD_metric': add_metric, "proj2D_metric": proj2d_metric})
+
+    print("pose_pred")
+    print([result["pose_pred"] for result in results])
+    print("pose_gt")
+    print([result["pose_gt"] for result in results])
+    print("inference time")
+    print([result["inference_time"] for result in results])
+    print(f"R_err - Mean: {np.mean(R_errs)} Median: {np.median(R_errs)} Std: {np.std(R_errs)} Min: {np.min(R_errs)} Max: {np.max(R_errs)}")
+    print(f"t_err - Mean: {np.mean(t_errs)} Median: {np.median(t_errs)} Std: {np.std(t_errs)} Min: {np.min(t_errs)} Max: {np.max(t_errs)}")
+
     metrics = aggregate_metrics(pose_errs, cfg['model']['eval_metrics']['pose_thresholds'])
 
     return metrics

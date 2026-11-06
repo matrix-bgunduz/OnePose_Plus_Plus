@@ -48,7 +48,10 @@ def fine_matcher(
             math.ceil(len(matching_pairs_dataset) / cfg_ray["n_workers"]),
         )
         obj_refs = [
-            matchWorker_ray_wrapper.remote(
+            matchWorker_ray_wrapper.options(
+                num_cpus=cfg_ray["n_cpus_per_worker"],
+                num_gpus=cfg_ray["n_gpus_per_worker"],
+            ).remote(
                 matching_pairs_dataset,
                 subset_ids,
                 matcher,

@@ -139,7 +139,6 @@ def inference_worker(data_dirs, cfg, pba=None, worker_id=0):
         f"Worker {worker_id} will process: {[(data_dir.split(' ')[0]).split('/')[-1][:4] for data_dir in data_dirs]}, total: {len(data_dirs)} objects"
     )
     data_dirs = tqdm(data_dirs) if pba is None else data_dirs
-
     obj_name2metrics = {}
     for data_dir in data_dirs:
         logger.info(f"Processing {data_dir}.")
@@ -185,7 +184,7 @@ def inference_worker(data_dirs, cfg, pba=None, worker_id=0):
             + cfg.network.detection
             + "_"
             + cfg.network.matching,
-            obj_name,
+            "0000-" + cfg["train_model"] if "train_model" in cfg else obj_name,
         )
 
         metrics = inference_onepose_plus(sfm_results_dir, all_image_paths, cfg, use_ray=cfg.use_local_ray, verbose=cfg.verbose)

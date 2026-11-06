@@ -278,6 +278,8 @@ def gather_3d_ann(
         assert pba is None
         points_idxs = points_idxs.items()
 
+    pba_batch_size = 50
+    pba_pending = 0
     for new_point_idx, old_points_idxs in points_idxs:
         descriptors = None
         scores = np.empty(shape=(0, 1))
@@ -303,7 +305,13 @@ def gather_3d_ann(
         idxs.append(descriptors.shape[0] if descriptors is not None else 0)
 
         if pba is not None:
-            pba.update.remote(1)
+            pba_pending += 1
+            if pba_pending >= pba_batch_size:
+                pba.update.remote(pba_pending)
+                pba_pending = 0
+
+    if pba is not None and pba_pending > 0:
+        pba.update.remote(pba_pending)
 
     return kp3d_position, kp3d_descriptors, kp3d_scores, np.array(idxs)
 
@@ -578,7 +586,7 @@ def get_kpt_ann(
     # step 2
     if use_ray:
         # Parallel gather:
-        cfg_ray = cfgs["ray"]
+        cfg_ray = cfg.ray if "ray" in cfg else cfgs["ray"]
         if cfg_ray["slurm"]:
             ray.init(address=os.environ["ip_head"])
         else:

@@ -174,6 +174,10 @@ def sfm_core(cfg, img_lists, outputs_dir_root, obj_name):
         obj_name,
     )
 
+    if osp.isdir(vis3d_pth) and os.listdir(vis3d_pth):
+        print("SFM exists, exiting.")
+        exit()
+
     feature_out = osp.join(outputs_dir, f"feats-{cfg.network.detection}.h5")
     covis_num = cfg.sfm.covis_num
     covis_pairs_out = osp.join(outputs_dir, f"pairs-covis{covis_num}.txt")
@@ -225,6 +229,7 @@ def sfm_core(cfg, img_lists, outputs_dir_root, obj_name):
             feature_out,
             matches_out,
             use_ray=cfg.use_local_ray,
+            ray_cfg=cfg.ray if "ray" in cfg else None,
             verbose=cfg.verbose
         )
         generate_empty.generate_model(img_lists, empty_dir)
@@ -290,7 +295,8 @@ def sfm_core(cfg, img_lists, outputs_dir_root, obj_name):
                 fine_match_use_ray=cfg.use_local_ray,
                 vis3d_pth=vis3d_pth,
                 verbose=cfg.verbose,
-                args=post_optim_configs
+                args=post_optim_configs,
+                ray_cfg=cfg.ray if "ray" in cfg else None,
             )
             if state == False:
                 logger.error("Coarse reconstruction failed!")
